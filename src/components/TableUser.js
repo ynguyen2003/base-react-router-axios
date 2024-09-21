@@ -5,7 +5,7 @@ import ReactPaginate from 'react-paginate'
 import ModalAddNew from './ModalsAddNew';
 import ModalEditUser from './ModalEditUser';
 import ModalConfirm from './ModalConfirm';
-import _ from 'lodash'
+import _, { debounce } from 'lodash'
 import './Table.scss'
 
 
@@ -22,6 +22,11 @@ const TableUsers = (props) => {
 
     const [isShowModalDelete, setIsShowModalDelete] = useState(false)
     const [dataUserDelete, setDataUserDelete] = useState({})
+
+    const [sortBy, setSortBy] = useState("asc")
+    const [sortField, setSortField] = useState("id")
+
+    const [keyword, setKeyword] = useState("")
 
     const handleClose = () => {
         setIsShowModalAddNew(false)
@@ -56,6 +61,15 @@ const TableUsers = (props) => {
         setListUsers(cloneListUser)
     }
 
+    const handleSort = (sortBy, sortField) => {
+        setSortBy(sortBy)
+        setSortField(sortField)
+
+        let cloneListUser = _.cloneDeep(listUsers)
+        cloneListUser = _.orderBy(cloneListUser, [sortField], [sortBy]);
+        setListUsers(cloneListUser)
+    }
+
     useEffect(() => {
         getUsers(1)
     }, [])
@@ -74,8 +88,27 @@ const TableUsers = (props) => {
         getUsers(+event.selected + 1)
     }
 
+    const handleSearch = debounce((event) => {
+        let term = event.target.value;
+        if (term) {
+            let cloneListUser = _.cloneDeep(listUsers)
+            cloneListUser = cloneListUser.filter(item => item.email.includes(term))
+            setListUsers(cloneListUser)
+        } else {
+            getUsers(1)
+        }
+    }, 500)
+
     return (
         <>
+            <div className='col-4 my-3'>
+                <input
+                    className='form-control'
+                    placeholder='Search by email'
+                    // value={keyword}
+                    onChange={(event) => handleSearch(event)}
+                />
+            </div>
             <div className='my-3 add-new'>
                 <span><h3>List User</h3></span>
                 <button className='btn btn-success'
@@ -88,8 +121,14 @@ const TableUsers = (props) => {
                             <div className='sort-header'>
                                 <span>ID</span>
                                 <span>
-                                    <i className="fa-solid fa-arrow-up-long"></i>
-                                    <i className="fa-solid fa-arrow-down-long"></i>
+                                    <i
+                                        className="fa-solid fa-arrow-up-long"
+                                        onClick={() => handleSort("asc", "id")}
+                                    ></i>
+                                    <i
+                                        className="fa-solid fa-arrow-down-long"
+                                        onClick={() => handleSort("desc", "id")}
+                                    ></i>
                                 </span>
                             </div>
 
@@ -99,8 +138,14 @@ const TableUsers = (props) => {
                             <div className='sort-header'>
                                 <span>Name</span>
                                 <span>
-                                    <i className="fa-solid fa-arrow-up-long"></i>
-                                    <i className="fa-solid fa-arrow-down-long"></i>
+                                    <i
+                                        className="fa-solid fa-arrow-up-long"
+                                        onClick={() => handleSort("asc", "first_name")}
+                                    ></i>
+                                    <i
+                                        className="fa-solid fa-arrow-down-long"
+                                        onClick={() => handleSort("desc", "first_name")}
+                                    ></i>
                                 </span>
                             </div>
                         </th>
