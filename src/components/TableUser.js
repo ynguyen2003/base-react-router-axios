@@ -7,6 +7,10 @@ import ModalEditUser from './ModalEditUser';
 import ModalConfirm from './ModalConfirm';
 import _, { debounce } from 'lodash'
 import './Table.scss'
+import { CSVLink } from "react-csv";
+import Papa from "papaparse";
+import { toast } from 'react-toastify'
+
 
 
 const TableUsers = (props) => {
@@ -26,7 +30,9 @@ const TableUsers = (props) => {
     const [sortBy, setSortBy] = useState("asc")
     const [sortField, setSortField] = useState("id")
 
-    const [keyword, setKeyword] = useState("")
+    // const [keyword, setKeyword] = useState("")
+
+    const [dataExport, setDataExport] = useState([])
 
     const handleClose = () => {
         setIsShowModalAddNew(false)
@@ -99,6 +105,67 @@ const TableUsers = (props) => {
         }
     }, 500)
 
+    const handleImportCSV = (event) => {
+        if (event.target && event.target.files && event.target.files[0]) {
+            let file = event.target.files[0]
+            if (file.type !== "text/csv") {
+                toast.error("Only accept csv files...")
+                return
+            }
+            Papa.parse(file, {
+                // header: true,
+                complete: function (results) {
+                    let rawCSV = results.data;
+                    if (rawCSV.length > 0) {
+                        if (rawCSV[0] && rawCSV[0].length === 3) {
+                            if (rawCSV[0][0] !== "email"
+                                || rawCSV[0][1] !== "first_name"
+                                || rawCSV[0][2] !== "last_name"
+                            ) {
+                                toast.error("Wrong format csv file!")
+                            } else {
+                                let result = []
+                                rawCSV.map((item, index) => {
+                                    if (index > 0 && item.length === 3) {
+                                        let obj = []
+                                        obj.email = item[0]
+                                        obj.first_name = item[1]
+                                        obj.last_name = item[2]
+                                        result.push(obj)
+                                    }
+                                })
+                                setListUsers(result)
+                            }
+                        } else {
+                            toast.error("Wrong format csv file!")
+                        }
+                    } else {
+                        toast.error("Not found data on csv file!")
+                    }
+                }
+            });
+        }
+
+
+    }
+
+    const getUserExport = (event, done) => {
+        let result = []
+        if (listUsers && listUsers.length > 0) {
+            result.push(["Id", "Email", "First Name", "Last Name"])
+            listUsers.map((item) => {
+                let arr = [];
+                arr[0] = item.id;
+                arr[1] = item.email;
+                arr[2] = item.first_name;
+                arr[3] = item.last_name;
+                result.push(arr)
+            })
+            setDataExport(result)
+            done()
+        }
+    }
+
     return (
         <>
             <div className='col-4 my-3'>
@@ -111,8 +178,28 @@ const TableUsers = (props) => {
             </div>
             <div className='my-3 add-new'>
                 <span><h3>List User</h3></span>
-                <button className='btn btn-success'
-                    onClick={() => setIsShowModalAddNew(true)}>Add new User</button>
+                <div className='group-btns'>
+                    <label htmlFor='import' className='btn btn-warning'>
+                        <i className="fa-solid fa-file-import"></i> Import
+                    </label>
+                    <input
+                        type='file'
+                        id="import" hidden
+                        onChange={(event) => handleImportCSV(event)}
+                    />
+                    <CSVLink
+                        filename={"users.csv"}
+                        className="btn btn-primary"
+                        data={dataExport}
+                        asyncOnClick={true}
+                        onClick={getUserExport}
+                    >
+                        <i class="fa-solid fa-file-arrow-down"></i> Export
+                    </CSVLink>
+                    <button className='btn btn-success'
+                        onClick={() => setIsShowModalAddNew(true)}>
+                        <i className="fa-solid fa-circle-plus"></i> Add new</button>
+                </div>
             </div>
             <Table striped bordered hover>
                 <thead>

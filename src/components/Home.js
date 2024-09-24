@@ -58,6 +58,34 @@ const Home = () => {
             </div>
             <hr />
             <div className="mt-3">
+                <b># Axios Instance</b>
+                <br />
+                <div className="my-1">
+                    Giúp tạo một base url cố định tránh việc lặp lại việc kêu gọi http
+                </div>
+            </div>
+            <hr />
+            <div className="mt-3">
+                <b># Axios Interceptors</b>
+                <br />
+                <div className="my-1">
+                    Interceptors: là một chức năng giúp chúng ta có thể can thiệp vào trước lúc mọi request được gửi đi và mọi response được nhận về,
+                    thông qua đó xử lý các bài toán tổng quan thường xảy ra.
+                    <ul>
+                        <li>Đính kèm token xác thực</li>
+                        <li>Xử lý refresh token nếu response trả về lỗi (thông thường mã lỗi là 401)</li>
+                        <li>Biến đổi dữ liệu response về theo định dạng chung</li>
+                        <li>Cancel request nếu cần thiết</li>
+                    </ul>
+                    <ul>
+                        <b>Có 2 loại Interceptors</b>
+                        <li>Request Interceptors: cho phép chúng ta can thiệp vào trước mọi request được gửi đi</li>
+                        <li>Response Interceptors: cho phép chúng ta can thiệp vào trước mọi response được nhận về</li>
+                    </ul>
+                </div>
+            </div>
+            <hr />
+            <div className="mt-3">
                 <b># Một request với Axios</b>
                 <br />
                 <div className="my-1">
