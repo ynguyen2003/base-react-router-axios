@@ -1,83 +1,87 @@
-import { useState, useContext } from "react"
-import { loginApi } from "../services/UserServices"
-import { toast } from 'react-toastify'
-import { useNavigate } from "react-router-dom"
-import { UserContext } from "../context/UserContext"
+import { useContext } from "react";
+import { loginApi } from "../services/UserServices";
+import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 const Login = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { loginContext } = useContext(UserContext);
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [isShowPassword, setIsShowPassword] = useState(false)
-    const [loadingAPI, setLoadingAPI] = useState(false)
 
-    // useEffect(() => {
-    //     let token = localStorage.getItem("token")
-    //     if (token) {
-    //         navigate("/")
-    //     }
-    // }, [])
-
-    const handleLogin = async () => {
-        if (!email || !password) {
-            toast.error("Email and Password is required!")
-            return
-        }
-        setLoadingAPI(true)
-        let res = await loginApi(email, password)
-        if (res && res.token) {
-            loginContext(email, res.token)
-            navigate("/")
-        } else {
-            //error
-            if (res && res.status === 400) {
-                toast.error(res.data.error)
+    const formik = useFormik({
+        initialValues: {
+            email: "",
+            password: ""
+        },
+        validationSchema: Yup.object({
+            email: Yup.string()
+                .required("Email is required")
+                .email("Invalid email address"),
+            password: Yup.string()
+                .required("Password is required")
+                .min(8, "Password must be at least 8 characters"),
+        }),
+        onSubmit: async (values) => {
+            let { email, password } = values;
+            const res = await loginApi(email, password);
+            if (res && res.token) {
+                loginContext(email, res.token);
+                navigate("/");
+            } else {
+                if (res && res.status === 400) {
+                    toast.error(res.data.error);
+                }
             }
         }
-        setLoadingAPI(false)
-    }
+    });
+
     const handleGoBack = () => {
-        navigate("/")
-    }
+        navigate("/");
+    };
+
     return (
-        <>
-            <div className="login-container col-12 col-sm-4">
-                <div className="title">Log in</div>
-                <div className="text">Email or Username (eve.holt@reqres.in)</div>
+        <div className="login-container col-12 col-sm-4">
+            <div className="title">Log in</div>
+            <form onSubmit={formik.handleSubmit}>
+                <div className="text">Email (eve.holt@reqres.in)</div>
                 <input
                     type="text"
                     placeholder="Enter your email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    id="email"
+                    name="email"
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
                 />
+                {formik.errors.email && <p className='errorMsg'>{formik.errors.email}</p>}
+
                 <div className="input-password">
                     <input
-                        type={isShowPassword === true ? "text" : "password"}
+                        type={formik.values.password ? "text" : "password"}
                         placeholder="Password..."
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
+                        id="password"
+                        name="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
                     />
-                    <i className={isShowPassword === true ? "far fa-eye" : "far fa-eye-slash"}
-                        onClick={() => setIsShowPassword(!isShowPassword)}
-                    ></i>
                 </div>
+                {formik.errors.password && <p className='errorMsg'>{formik.errors.password}</p>}
 
                 <button
-                    className={email && password ? "active" : ""}
-                    disabled={email && password ? false : true}
-                    onClick={() => handleLogin()}
+                    type="submit"
+                    className={formik.isValid && formik.dirty ? "active" : ""}
+                    disabled={!formik.isValid || !formik.dirty}
                 >
-                    {loadingAPI && <i class="fa-solid fa-sync fa-spin"></i>}
-                    &nbsp;Login
+                    {formik.isSubmitting ? <i className="fa-solid fa-sync fa-spin"></i> : "Login"}
                 </button>
-                <div className="back">
-                    <i className="fas fa-angle-double-left"></i>
-                    <span onClick={() => handleGoBack()}>&nbsp;Go Back</span>
-                </div>
+            </form>
+            <div className="back">
+                <i className="fas fa-angle-double-left"></i>
+                <span onClick={handleGoBack}>&nbsp;Go Back</span>
             </div>
-        </>
-    )
-}
+        </div>
+    );
+};
 
-export default Login
+export default Login;

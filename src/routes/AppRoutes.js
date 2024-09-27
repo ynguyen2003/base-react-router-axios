@@ -10,10 +10,13 @@ const AppRoutes = () => {
             <Routes>
                 <Route path='/' element={<Home />}></Route>
                 <Route path='/login' element={<Login />}></Route>
+                <Route path="/users" element={
+                    <PrivateRoute path="/users">
+                        <TableUsers />
+                    </PrivateRoute>
+                }></Route>
             </Routes>
-            <PrivateRoute path="/users">
-                <TableUsers />
-            </PrivateRoute>
+
 
         </>
     )
